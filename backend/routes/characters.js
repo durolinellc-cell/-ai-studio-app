@@ -1,51 +1,28 @@
 import express from 'express';
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { r2Configured, r2PutObject, r2GetJson, r2PutJson } from '../lib/r2.js';
 
 const router = express.Router();
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = path.join(__dirname, '..', 'data');
-const DATA_FILE = path.join(DATA_DIR, 'characters.json');
+// Metadata nhan vat luu tren Cloudflare R2 (giong library.js) - ben vung qua moi lan deploy.
+// Anh tham chieu duoc nhung thang vao chuoi base64 trong chinh metadata (nho gon, don gian
+// hoa - khac voi library.js phai tach file rieng vi anh/video thu vien co the rat nang).
+const META_KEY = 'characters-metadata.json';
 
-// LUU Y VE PERSISTENCE: file nay nam tren dia cua container. Tren Railway (va nhieu
-// dich vu hosting tuong tu), dia mac dinh la "ephemeral" - moi lan deploy lai (push code
-// moi) container se bi tao lai tu dau va file nay se MAT, tro ve rong. De du lieu that su
-// ben vung qua nhieu lan deploy, can gan mot "Volume" (Railway: Settings -> Volumes ->
-// Mount path "/app/data") hoac chuyen sang dung database that (Postgres/MongoDB...).
-
-async function ensureDataFile() {
-  try {
-    await fs.mkdir(DATA_DIR, { recursive: true });
-    await fs.access(DATA_FILE);
-  } catch {
-    await fs.writeFile(DATA_FILE, '[]', 'utf-8');
+function requireR2(res) {
+  if (!r2Configured()) {
+    res.status(501).json({ error: 'Chua cau hinh R2 (R2_ENDPOINT / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY) trong .env' });
+    return false;
   }
-}
-
-async function readCharacters() {
-  await ensureDataFile();
-  const raw = await fs.readFile(DATA_FILE, 'utf-8');
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return [];
-  }
-}
-
-async function writeCharacters(list) {
-  await ensureDataFile();
-  await fs.writeFile(DATA_FILE, JSON.stringify(list, null, 2), 'utf-8');
+  return true;
 }
 
 /**
  * GET /api/characters
- * Tra ve: mang tat ca nhan vat da luu
  */
 router.get('/', async (req, res) => {
+  if (!requireR2(res)) return;
   try {
-    const characters = await readCharacters();
+    const characters = await r2GetJson(META_KEY, []);
     res.json({ characters });
   } catch (err) {
     console.error('Loi doc danh sach nhan vat:', err);
@@ -56,16 +33,16 @@ router.get('/', async (req, res) => {
 /**
  * POST /api/characters
  * Body: { name, lock, expressions, refImage }
- * Tao nhan vat moi, tra ve nhan vat vua tao
  */
 router.post('/', async (req, res) => {
+  if (!requireR2(res)) return;
   try {
     const { name, lock, expressions, refImage } = req.body;
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Thieu ten nhan vat.' });
     }
 
-    const characters = await readCharacters();
+    const characters = await r2GetJson(META_KEY, []);
     const newChar = {
       id: 'char_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
       name: name.trim(),
@@ -75,7 +52,7 @@ router.post('/', async (req, res) => {
       createdAt: Date.now(),
     };
     characters.unshift(newChar);
-    await writeCharacters(characters);
+    await r2PutJson(META_KEY, characters);
 
     res.json({ character: newChar });
   } catch (err) {
@@ -86,15 +63,14 @@ router.post('/', async (req, res) => {
 
 /**
  * PUT /api/characters/:id
- * Body: { name?, lock?, expressions?, refImage? }
- * Cap nhat nhan vat da co, tra ve nhan vat sau khi sua
  */
 router.put('/:id', async (req, res) => {
+  if (!requireR2(res)) return;
   try {
     const { id } = req.params;
     const { name, lock, expressions, refImage } = req.body;
 
-    const characters = await readCharacters();
+    const characters = await r2GetJson(META_KEY, []);
     const character = characters.find((c) => c.id === id);
     if (!character) return res.status(404).json({ error: 'Khong tim thay nhan vat.' });
 
@@ -103,7 +79,7 @@ router.put('/:id', async (req, res) => {
     if (expressions !== undefined) character.expressions = expressions;
     if (refImage) character.refImage = refImage;
 
-    await writeCharacters(characters);
+    await r2PutJson(META_KEY, characters);
     res.json({ character });
   } catch (err) {
     console.error('Loi cap nhat nhan vat:', err);
@@ -115,16 +91,17 @@ router.put('/:id', async (req, res) => {
  * DELETE /api/characters/:id
  */
 router.delete('/:id', async (req, res) => {
+  if (!requireR2(res)) return;
   try {
     const { id } = req.params;
-    const characters = await readCharacters();
+    const characters = await r2GetJson(META_KEY, []);
     const filtered = characters.filter((c) => c.id !== id);
 
     if (filtered.length === characters.length) {
       return res.status(404).json({ error: 'Khong tim thay nhan vat.' });
     }
 
-    await writeCharacters(filtered);
+    await r2PutJson(META_KEY, filtered);
     res.json({ success: true });
   } catch (err) {
     console.error('Loi xoa nhan vat:', err);
