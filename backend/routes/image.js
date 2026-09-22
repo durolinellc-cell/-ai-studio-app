@@ -18,7 +18,7 @@ const FAL_KEY = process.env.FAL_KEY; // dung lam duong di cho Seedream (ByteDanc
 const GEMINI_MODEL_MAP = {
   'nano-banana': 'gemini-2.5-flash-image',
   'nano-banana-2': 'gemini-3.1-flash-image',
-  'nano-banana-2-lite': 'gemini-3.1-flash-image-lite',
+  'nano-banana-2-lite': 'gemini-3.1-flash-lite-image',
   'nano-banana-pro': 'gemini-3-pro-image',
 };
 
