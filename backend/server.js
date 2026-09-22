@@ -21,24 +21,26 @@ app.set('trust proxy', 1);
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// Gioi han request de tranh bi lam dung / ton chi phi API AI qua muc
+// Gioi han request de tranh bi lam dung / ton chi phi API AI qua muc.
+// CHI ap dung cho cac route thuc su goi API AI tra phi (text/image/video/speed2) -
+// KHONG ap dung cho library/characters vi day chi la luu tru don gian, khong ton tien AI.
 const limiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 gio
   max: Number(process.env.RATE_LIMIT_MAX || 30),
   message: { error: 'Ban da vuot gioi han so luong yeu cau. Thu lai sau.' },
 });
-app.use('/api/', limiter);
 
 // Phuc vu frontend tinh (thu muc backend/public/)
 app.use(express.static('public'));
 
-// Cac nhom API
-app.use('/api/text', textRouter);   // Sinh van ban qua Claude
-app.use('/api/image', imageRouter); // Sinh anh + chinh sua anh qua Gemini / Nano Banana
-app.use('/api/video', videoRouter); // Sinh video (text-to-video, image-to-video) qua Kling API
-app.use('/api/speed2', speed2Router); // Buoc thu 3 - can cau hinh khi ro dich vu
-app.use('/api/characters', charactersRouter); // Luu/doc/sua/xoa nhan vat (CRUD)
-app.use('/api/library', libraryRouter); // Luu/doc/sua/xoa thu vien anh/video (CRUD, luu file that)
+// Cac nhom API - luu y thu tu: library/characters KHONG di qua "limiter", cac route con lai co
+app.use('/api/library', libraryRouter); // Luu/doc/sua/xoa thu vien anh/video (CRUD, luu file that) - KHONG gioi han
+app.use('/api/characters', charactersRouter); // Luu/doc/sua/xoa nhan vat (CRUD) - KHONG gioi han
+
+app.use('/api/text', limiter, textRouter);   // Sinh van ban qua Claude - CO gioi han
+app.use('/api/image', limiter, imageRouter); // Sinh anh + chinh sua anh qua Gemini / Nano Banana - CO gioi han
+app.use('/api/video', limiter, videoRouter); // Sinh video qua Kling API - CO gioi han
+app.use('/api/speed2', limiter, speed2Router); // Buoc thu 3 - can cau hinh khi ro dich vu - CO gioi han
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
