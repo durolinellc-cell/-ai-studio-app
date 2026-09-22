@@ -1318,6 +1318,8 @@
     const aspectSuffix = aspect !== 'auto' ? ` Output aspect ratio: ${aspect}.` : '';
     const customDescGlobal = document.getElementById('f_custom_desc')?.value.trim();
     const customSuffix = customDescGlobal ? ` Additional instructions: ${customDescGlobal}.` : '';
+    const provider = document.getElementById('f_img_provider')?.value || 'gemini';
+    const model = document.getElementById('f_img_model')?.value || 'nano-banana';
 
     if (tool === 'faceSwap') {
       const faceInput = document.getElementById('f_face_image');
@@ -1328,6 +1330,7 @@
       const target = await fileToBase64(targetInput.files[0]);
       await callApi('/api/image/edit', {
         prompt: 'Swap the face from the first image onto the person in the second image, keep everything else in the second image unchanged, blend naturally.' + customSuffix + aspectSuffix,
+        provider, model,
         images: [
           { base64: face.base64, mimeType: face.mimeType },
           { base64: target.base64, mimeType: target.mimeType },
@@ -1380,7 +1383,7 @@
 
     prompt += customSuffix + aspectSuffix;
 
-    await callApi('/api/image/edit', { prompt, imageBase64: base64, mimeType }, 'image');
+    await callApi('/api/image/edit', { prompt, provider, model, imageBase64: base64, mimeType }, 'image');
   }
 
   function updateT2IToolVisibility(tool) {
@@ -1486,6 +1489,18 @@
       }
     }
 
+    // Nha cung cap + Model - ap dung cho MOI cong cu (ke ca Face Swap), de nguoi dung
+    // chon dung AI nao xu ly viec sua anh, khong con co dinh Gemini nhu truoc
+    html += `
+      <div class="field">
+        <label>${t('t2i_providerLabel')}</label>
+        <select id="f_img_provider">${imageProviderOptionsHtml()}</select>
+      </div>
+      <div class="field">
+        <label>${t('t2i_modelLabel')}</label>
+        <select id="f_img_model">${imageModelOptionsHtml('gemini')}</select>
+      </div>`;
+
     // Mo ta them (tuy chon) - ap dung cho MOI cong cu, nhan va placeholder rieng theo tung cong cu
     const CUSTOM_DESC_KEY_MAP = {
       effect: 'customDesc_effect', variations: 'customDesc_variations', expand: 'customDesc_expand',
@@ -1512,6 +1527,10 @@
     container.innerHTML = html;
     if (hintEl) hintEl.textContent = hint;
     bindUploadBoxes(container);
+
+    document.getElementById('f_img_provider')?.addEventListener('change', (e) => {
+      renderImageModelOptions(e.target.value);
+    });
 
     container.querySelectorAll('.pill-group').forEach((group) => {
       group.addEventListener('click', (e) => {

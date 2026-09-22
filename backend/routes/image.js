@@ -81,6 +81,36 @@ async function generateWithOpenAI({ prompt, model, resolution }) {
   return { imageBase64: b64, mimeType: 'image/png' };
 }
 
+// Sua anh co san bang OpenAI (/v1/images/edits) - dung endpoint RIENG, khac voi tao anh moi.
+// Chi nhan DUOC 1 anh dau vao (khong ho tro nhieu anh nhu Face Swap cua Gemini).
+async function editWithOpenAI({ prompt, model, imageBase64, mimeType }) {
+  if (!OPENAI_API_KEY) throw new Error('Chua cau hinh OPENAI_API_KEY trong .env');
+  if (!imageBase64) throw new Error('OpenAI Image Edit can dung 1 anh dau vao (chua ho tro nhieu anh nhu Face Swap).');
+
+  const modelName = OPENAI_MODEL_MAP[model] || OPENAI_MODEL_MAP['gpt-image-2'];
+  const ext = (mimeType || 'image/png').split('/')[1] || 'png';
+  const imageBlob = new Blob([Buffer.from(imageBase64, 'base64')], { type: mimeType || 'image/png' });
+
+  const form = new FormData();
+  form.append('model', modelName);
+  form.append('prompt', prompt);
+  form.append('image', imageBlob, `input.${ext}`);
+
+  const res = await fetch('https://api.openai.com/v1/images/edits', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
+    body: form,
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error?.message || 'Loi khi goi OpenAI Image Edit API');
+
+  const b64 = data?.data?.[0]?.b64_json;
+  if (!b64) throw new Error('OpenAI khong tra ve du lieu anh (b64_json).');
+
+  return { imageBase64: b64, mimeType: 'image/png' };
+}
+
 async function generateWithSeedream({ prompt, model, resolution }) {
   if (!FAL_KEY) throw new Error('Chua cau hinh FAL_KEY trong .env (can cho Seedream)');
 
@@ -141,27 +171,44 @@ router.post('/generate', async (req, res) => {
 
 /**
  * POST /api/image/edit
- * Body: { prompt: string, imageBase64?: string, mimeType?: string, images?: [{base64, mimeType}] }
+ * Body: {
+ *   prompt: string, provider?: "gemini"|"openai"|"bytedance", model?: string,
+ *   imageBase64?: string, mimeType?: string, images?: [{base64, mimeType}]
+ * }
  * Tra ve: { imageBase64: string, mimeType: string }
- * Dung Gemini (Nano Banana) de chinh sua anh co san. "images" (mang) dung khi can nhieu anh dau vao,
- * vi du Face Swap (anh mat + anh nen). Cac cong cu khac (Bien the, Mo rong khung, Upscale, Doi nen,
- * Nhieu goc nhin, Goc may quay) deu di qua route nay, chi khac nhau o prompt duoc frontend tao san.
  *
- * LUU Y: Gemini/Nano Banana la model chinh sua anh bang ngon ngu tu nhien, KHONG phai cong cu
- * upscale chuyen dung (khong dam bao tang so pixel that su) va khong dam bao outpainting chinh xac
- * tung pixel nhu cac cong cu chuyen biet (Photoshop Generative Fill, Magnific...). Ket qua co the
- * khac ky vong - can thu nghiem thuc te.
+ * - provider "gemini" (mac dinh): dung Gemini/Nano Banana, ho tro nhieu anh dau vao (Face Swap).
+ * - provider "openai": dung OpenAI Image Edit that (/v1/images/edits), CHI nhan 1 anh dau vao -
+ *   neu chon Face Swap (can 2 anh) voi provider nay se bao loi, tu dong goi y dung Gemini.
+ * - provider "bytedance" (Seedream): CHUA co endpoint sua-anh-co-san qua fal.ai duoc xac nhan,
+ *   nen hien tai bao loi ro rang thay vi chay sai - dung Gemini hoac OpenAI cho cac cong cu sua anh.
+ *
+ * LUU Y: day la cac model chinh sua anh bang ngon ngu tu nhien, KHONG phai cong cu upscale chuyen
+ * dung (khong dam bao tang so pixel that su) va khong dam bao outpainting chinh xac tung pixel
+ * nhu cac cong cu chuyen biet (Photoshop Generative Fill, Magnific...). Ket qua co the khac ky
+ * vong - can thu nghiem thuc te.
  */
 router.post('/edit', async (req, res) => {
   try {
-    const { prompt, imageBase64, mimeType, images } = req.body;
+    const { prompt, provider = 'gemini', model, imageBase64, mimeType, images } = req.body;
 
     if (!prompt) return res.status(400).json({ error: 'Thieu "prompt"' });
     if (!imageBase64 && !(images && images.length)) {
       return res.status(400).json({ error: 'Thieu anh dau vao ("imageBase64" hoac "images")' });
     }
 
-    const result = await generateWithGemini({ prompt, model: 'nano-banana', imageBase64, mimeType, images });
+    let result;
+    if (provider === 'openai') {
+      if (images && images.length > 1) {
+        throw new Error('OpenAI chua ho tro sua nhieu anh cung luc (vd Face Swap) - hay chon Gemini cho cong cu nay.');
+      }
+      result = await editWithOpenAI({ prompt, model, imageBase64, mimeType });
+    } else if (provider === 'bytedance') {
+      throw new Error('Seedream chua ho tro sua anh co san qua API nay - hay chon Gemini hoac OpenAI cho cong cu nay.');
+    } else {
+      result = await generateWithGemini({ prompt, model: model || 'nano-banana', imageBase64, mimeType, images });
+    }
+
     res.json(result);
   } catch (err) {
     console.error('Loi khi chinh sua anh:', err);
