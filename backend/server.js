@@ -8,6 +8,7 @@ import imageRouter from './routes/image.js';
 import videoRouter from './routes/video.js';
 import speed2Router from './routes/speed2.js';
 import charactersRouter from './routes/characters.js';
+import libraryRouter from './routes/library.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,6 +33,7 @@ app.use('/api/image', imageRouter); // Sinh anh + chinh sua anh qua Gemini / Nan
 app.use('/api/video', videoRouter); // Sinh video (text-to-video, image-to-video) qua Kling API
 app.use('/api/speed2', speed2Router); // Buoc thu 3 - can cau hinh khi ro dich vu
 app.use('/api/characters', charactersRouter); // Luu/doc/sua/xoa nhan vat (CRUD)
+app.use('/api/library', libraryRouter); // Luu/doc/sua/xoa thu vien anh/video (CRUD, luu file that)
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });

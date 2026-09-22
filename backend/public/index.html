@@ -1764,11 +1764,11 @@
 
       if (kind === 'video') {
         setCanvasResult('video', data.videoUrl);
-        addLibItem({ type: 'video', dataUrl: data.videoUrl, tool: activeTab, provider: body.provider, model: body.model });
+        await addLibItem({ type: 'video', dataUrl: data.videoUrl, tool: activeTab, provider: body.provider, model: body.model });
       } else {
         const dataUrl = `data:${data.mimeType};base64,${data.imageBase64}`;
         setCanvasResult('image', dataUrl);
-        addLibItem({ type: 'image', dataUrl, tool: activeTab, provider: body.provider, model: body.model });
+        await addLibItem({ type: 'image', dataUrl, tool: activeTab, provider: body.provider, model: body.model });
       }
     } catch (err) {
       setCanvasError(err.message);
@@ -1778,16 +1778,20 @@
   }
 
   // ============================================================
-  // THU VIEN (Library) - luu trong localStorage cua trinh duyet
+  // THU VIEN (Library) - anh/video luu THAT tren server qua /api/library
+  // (Thu muc "folder" van giu nhe trong localStorage vi chi la ten chu, khong nang)
   // ============================================================
-  const LIB_ITEMS_KEY = 'studio_library_items';
   const LIB_FOLDERS_KEY = 'studio_library_folders';
 
-  function loadLibItems() {
-    try { return JSON.parse(localStorage.getItem(LIB_ITEMS_KEY) || '[]'); } catch { return []; }
-  }
-  function saveLibItems(items) {
-    try { localStorage.setItem(LIB_ITEMS_KEY, JSON.stringify(items)); } catch (e) { console.error('Khong the luu thu vien:', e); }
+  async function loadLibItems() {
+    try {
+      const res = await fetch(`${API_BASE}/api/library`);
+      const data = await res.json();
+      return data.items || [];
+    } catch (e) {
+      console.error('Khong the tai thu vien:', e);
+      return [];
+    }
   }
   function loadLibFolders() {
     try { return JSON.parse(localStorage.getItem(LIB_FOLDERS_KEY) || '[]'); } catch { return []; }
@@ -1798,14 +1802,32 @@
 
   let activeFolder = '__all__'; // '__all__' | '__unsorted__' | ten thu muc
 
-  function addLibItem({ type, dataUrl, tool, provider, model }) {
-    const items = loadLibItems();
-    items.unshift({
-      id: 'item_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-      type, dataUrl, tool: tool || '', provider: provider || '', model: model || '',
-      label: '', favorite: false, folder: '__unsorted__', createdAt: Date.now(),
-    });
-    saveLibItems(items);
+  async function addLibItem({ type, dataUrl, tool, provider, model }) {
+    try {
+      let payload;
+      if (type === 'video') {
+        payload = { type: 'video', remoteUrl: dataUrl, tool, provider, model };
+      } else {
+        // dataUrl dang "data:image/png;base64,AAAA..." - tach phan mimeType va base64 rieng
+        const match = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
+        if (match) {
+          payload = { type: 'image', mimeType: match[1], imageBase64: match[2], tool, provider, model };
+        } else {
+          payload = { type: 'image', remoteUrl: dataUrl, tool, provider, model }; // du phong neu khong phai data URI
+        }
+      }
+      const res = await fetch(`${API_BASE}/api/library`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        console.error('Khong the luu vao thu vien:', err.error);
+      }
+    } catch (e) {
+      console.error('Loi khi luu vao thu vien:', e);
+    }
     renderLibrary();
   }
 
@@ -1836,8 +1858,8 @@
     });
   }
 
-  function renderFilterOptions() {
-    const items = loadLibItems();
+  async function renderFilterOptions() {
+    const items = await loadLibItems();
     const toolSel = document.getElementById('libFilterTool');
     const modelSel = document.getElementById('libFilterModel');
     if (!toolSel || !modelSel) return;
@@ -1861,9 +1883,9 @@
     document.getElementById('libFavToggleBtn')?.classList.toggle('active', favOnlyState);
   }
 
-  function renderLibrary() {
+  async function renderLibrary() {
     renderFolderDropdown();
-    renderFilterOptions();
+    await renderFilterOptions();
     updateTypeGroupUI();
 
     const grid = document.getElementById('libraryGrid');
@@ -1873,7 +1895,7 @@
     const toolFilter = document.getElementById('libFilterTool')?.value || '__all__';
     const modelFilter = document.getElementById('libFilterModel')?.value || '__all__';
 
-    let items = loadLibItems();
+    let items = await loadLibItems();
 
     if (activeFolder === '__unsorted__') items = items.filter((i) => i.folder === '__unsorted__');
     else if (activeFolder !== '__all__') items = items.filter((i) => i.folder === activeFolder);
@@ -1896,26 +1918,37 @@
     grid.innerHTML = items.map((item) => `
       <div class="lib-item${item.id === selectedLibItemId ? ' selected' : ''}" data-id="${item.id}" title="${item.label || item.tool || ''}">
         ${item.type === 'video'
-          ? `<video src="${item.dataUrl}" muted></video>`
-          : `<img src="${item.dataUrl}" alt="" />`}
+          ? `<video src="${item.fileUrl}" muted></video>`
+          : `<img src="${item.fileUrl}" alt="" />`}
         <div class="lib-fav${item.favorite ? ' active' : ''}" data-id="${item.id}">★</div>
         ${item.tool ? `<div class="lib-badge">${item.tool}</div>` : ''}
       </div>`).join('');
 
     grid.querySelectorAll('.lib-fav').forEach((el) => {
-      el.addEventListener('click', (e) => {
+      el.addEventListener('click', async (e) => {
         e.stopPropagation();
-        const items2 = loadLibItems();
-        const it = items2.find((i) => i.id === el.dataset.id);
-        if (it) { it.favorite = !it.favorite; saveLibItems(items2); renderLibrary(); }
+        const currentItems = await loadLibItems();
+        const it = currentItems.find((i) => i.id === el.dataset.id);
+        if (!it) return;
+        try {
+          await fetch(`${API_BASE}/api/library/${it.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ favorite: !it.favorite }),
+          });
+          renderLibrary();
+        } catch (err) {
+          console.error('Khong the cap nhat yeu thich:', err);
+        }
       });
     });
 
     grid.querySelectorAll('.lib-item').forEach((el) => {
-      el.addEventListener('click', () => {
-        const it = loadLibItems().find((i) => i.id === el.dataset.id);
+      el.addEventListener('click', async () => {
+        const currentItems = await loadLibItems();
+        const it = currentItems.find((i) => i.id === el.dataset.id);
         if (!it) return;
-        setCanvasResult(it.type, it.dataUrl);
+        setCanvasResult(it.type, it.fileUrl);
         selectedLibItemId = it.id;
       });
     });
@@ -2001,16 +2034,23 @@
       renderLibrary();
     });
 
-    document.getElementById('libRenameBtn')?.addEventListener('click', () => {
+    document.getElementById('libRenameBtn')?.addEventListener('click', async () => {
       if (!selectedLibItemId) return;
-      const items = loadLibItems();
+      const items = await loadLibItems();
       const it = items.find((i) => i.id === selectedLibItemId);
       if (!it) return;
       const name = prompt(t('lib_promptRenameItem'), it.label || '');
       if (name === null) return;
-      it.label = name.trim();
-      saveLibItems(items);
-      renderLibrary();
+      try {
+        await fetch(`${API_BASE}/api/library/${it.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ label: name.trim() }),
+        });
+        renderLibrary();
+      } catch (err) {
+        console.error('Khong the doi ten:', err);
+      }
     });
 
     document.getElementById('libUploadBtn')?.addEventListener('click', () => {
@@ -2021,7 +2061,7 @@
       for (const file of files) {
         const isVideo = file.type.startsWith('video/');
         const { base64, mimeType } = await fileToBase64(file);
-        addLibItem({
+        await addLibItem({
           type: isVideo ? 'video' : 'image',
           dataUrl: `data:${mimeType};base64,${base64}`,
           tool: 'upload',
