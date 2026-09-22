@@ -7,17 +7,17 @@ import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } fro
 // thuc cua Cloudflare: https://developers.cloudflare.com/r2/examples/aws/aws-sdk-js-v3/
 export const r2Client = new S3Client({
   region: 'auto',
-  endpoint: process.env.R2_ENDPOINT, // vd: https://<account-id>.r2.cloudflarestorage.com
+  endpoint: (process.env.R2_ENDPOINT || '').trim(), // vd: https://<account-id>.r2.cloudflarestorage.com
   credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+    accessKeyId: (process.env.R2_ACCESS_KEY_ID || '').trim(),
+    secretAccessKey: (process.env.R2_SECRET_ACCESS_KEY || '').trim(),
   },
   forcePathStyle: true, // R2 can duong dan dang <endpoint>/<bucket>/<key>, khong phai <bucket>.<endpoint>
   requestChecksumCalculation: 'WHEN_REQUIRED',
   responseChecksumValidation: 'WHEN_REQUIRED',
 });
 
-export const R2_BUCKET = process.env.R2_BUCKET_NAME || 'ai-studio-storage';
+export const R2_BUCKET = (process.env.R2_BUCKET_NAME || 'ai-studio-storage').trim();
 
 export function r2Configured() {
   return Boolean(process.env.R2_ENDPOINT && process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY);
