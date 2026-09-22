@@ -301,6 +301,13 @@
   .placeholder { color: var(--muted); font-size: 0.9rem; }
   .placeholder .big { font-size: 1.1rem; color: var(--text); margin-bottom: 6px; }
   .result-media { display: block; max-width: 100%; max-height: 72vh; width: auto; height: auto; margin: 0 auto; border-radius: 12px; border: 1px solid var(--border); }
+  .canvas-summary {
+    margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+  }
+  .canvas-summary-chip {
+    font-size: 0.72rem; color: var(--muted); background: var(--panel-2); border: 1px solid var(--border);
+    padding: 4px 10px; border-radius: 999px; white-space: nowrap;
+  }
   .status-line { margin-top: 14px; font-size: 0.85rem; color: var(--muted); }
   .status-line.error { color: var(--danger); }
   .spinner {
@@ -1739,13 +1746,34 @@
       </div>`;
   }
 
-  function setCanvasResult(kind, data) {
+  function formatDateTime(ts) {
+    if (!ts) return '';
+    const locale = LOCALE_MAP_FALLBACK[currentLang] || 'en-US';
+    return new Date(ts).toLocaleString(locale, {
+      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
+    });
+  }
+  const LOCALE_MAP_FALLBACK = { vi: 'vi-VN', en: 'en-US', es: 'es-ES', zh: 'zh-CN' };
+
+  function setCanvasResult(kind, data, meta) {
     const area = document.getElementById('canvasArea');
-    if (kind === 'video') {
-      area.innerHTML = `<div class="canvas-inner"><video class="result-media" src="${data}" controls autoplay loop></video></div>`;
-    } else {
-      area.innerHTML = `<div class="canvas-inner"><img class="result-media" src="${data}" /></div>`;
+    const mediaHtml = kind === 'video'
+      ? `<video class="result-media" src="${data}" controls autoplay loop></video>`
+      : `<img class="result-media" src="${data}" alt="" />`;
+
+    let summaryHtml = '';
+    if (meta) {
+      const chips = [];
+      if (meta.tool) chips.push(t('tab_' + meta.tool) !== 'tab_' + meta.tool ? t('tab_' + meta.tool) : meta.tool);
+      if (meta.provider) chips.push(meta.provider);
+      if (meta.model) chips.push(meta.model);
+      if (meta.createdAt) chips.push(formatDateTime(meta.createdAt));
+      if (chips.length) {
+        summaryHtml = `<div class="canvas-summary">${chips.map((c) => `<span class="canvas-summary-chip">${c}</span>`).join('')}</div>`;
+      }
     }
+
+    area.innerHTML = `<div class="canvas-inner">${mediaHtml}${summaryHtml}</div>`;
   }
 
   async function callApi(path, body, kind) {
@@ -1762,12 +1790,14 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || t('generic_error'));
 
+      const genMeta = { tool: activeTab, provider: body.provider, model: body.model, createdAt: Date.now() };
+
       if (kind === 'video') {
-        setCanvasResult('video', data.videoUrl);
+        setCanvasResult('video', data.videoUrl, genMeta);
         await addLibItem({ type: 'video', dataUrl: data.videoUrl, tool: activeTab, provider: body.provider, model: body.model });
       } else {
         const dataUrl = `data:${data.mimeType};base64,${data.imageBase64}`;
-        setCanvasResult('image', dataUrl);
+        setCanvasResult('image', dataUrl, genMeta);
         await addLibItem({ type: 'image', dataUrl, tool: activeTab, provider: body.provider, model: body.model });
       }
     } catch (err) {
@@ -1916,7 +1946,7 @@
     }
 
     grid.innerHTML = items.map((item) => `
-      <div class="lib-item${item.id === selectedLibItemId ? ' selected' : ''}" data-id="${item.id}" title="${item.label || item.tool || ''}">
+      <div class="lib-item${item.id === selectedLibItemId ? ' selected' : ''}" data-id="${item.id}" title="${[item.label, item.tool, item.model, formatDateTime(item.createdAt)].filter(Boolean).join(' · ')}">
         ${item.type === 'video'
           ? `<video src="${item.fileUrl}" muted></video>`
           : `<img src="${item.fileUrl}" alt="" />`}
@@ -1948,7 +1978,7 @@
         const currentItems = await loadLibItems();
         const it = currentItems.find((i) => i.id === el.dataset.id);
         if (!it) return;
-        setCanvasResult(it.type, it.fileUrl);
+        setCanvasResult(it.type, it.fileUrl, { tool: it.tool, provider: it.provider, model: it.model, createdAt: it.createdAt });
         selectedLibItemId = it.id;
       });
     });
