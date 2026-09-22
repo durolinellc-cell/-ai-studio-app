@@ -1,0 +1,20 @@
+{
+  "name": "ai-saas-backend",
+  "version": "1.0.0",
+  "description": "Backend API cho website AI: sinh text (Claude), sinh anh (Gemini/Nano Banana), va tich hop buoc thu 3 (Speed.2 - se cau hinh sau)",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "@anthropic-ai/sdk": "^0.32.1",
+    "@google/generative-ai": "^0.21.0",
+    "jsonwebtoken": "^9.0.2",
+    "express-rate-limit": "^7.4.0"
+  }
+}
