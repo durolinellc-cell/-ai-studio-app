@@ -13,6 +13,11 @@ import libraryRouter from './routes/library.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Railway (va hau het cac dich vu hosting) dat server sau 1 reverse proxy, gui kem
+// header X-Forwarded-For. Can khai bao "trust proxy" de express-rate-limit nhan dung
+// dia chi IP that cua nguoi dung, tranh loi ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
+app.set('trust proxy', 1);
+
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
