@@ -1,6 +1,10 @@
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 
 // Cloudflare R2 tuong thich giao thuc S3, nen dung chung AWS SDK, chi doi endpoint.
+// LUU Y QUAN TRONG: cac ban AWS SDK v3 gan day tu dong bat tinh nang "flexible checksums"
+// (CRC32...) ma R2 khong ho tro giong het AWS S3 goc, gay loi "AccessDenied" (403) ngay
+// ca khi key/secret dung. Phai tat 2 dong duoi day de tuong thich - theo huong dan chinh
+// thuc cua Cloudflare: https://developers.cloudflare.com/r2/examples/aws/aws-sdk-js-v3/
 export const r2Client = new S3Client({
   region: 'auto',
   endpoint: process.env.R2_ENDPOINT, // vd: https://<account-id>.r2.cloudflarestorage.com
@@ -8,6 +12,8 @@ export const r2Client = new S3Client({
     accessKeyId: process.env.R2_ACCESS_KEY_ID,
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
   },
+  requestChecksumCalculation: 'WHEN_REQUIRED',
+  responseChecksumValidation: 'WHEN_REQUIRED',
 });
 
 export const R2_BUCKET = process.env.R2_BUCKET_NAME || 'ai-studio-storage';
