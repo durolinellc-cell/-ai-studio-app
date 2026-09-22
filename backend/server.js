@@ -22,8 +22,8 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Phuc vu frontend tinh (thu muc frontend/)
-app.use(express.static('../frontend'));
+// Phuc vu frontend tinh (thu muc backend/public/)
+app.use(express.static('public'));
 
 // Cac nhom API
 app.use('/api/text', textRouter);   // Sinh van ban qua Claude
