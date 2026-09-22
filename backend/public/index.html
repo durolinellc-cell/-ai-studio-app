@@ -903,6 +903,16 @@
     el.innerHTML = imageModelOptionsHtml(providerKey);
   }
 
+  // Danh sach model ANH gop tat ca nha cung cap lam mot (dung "provider:model" lam value,
+  // giong het cach lam voi video, de khong can chon Nha cung cap rieng nua).
+  function allImageModelsOptionsHtml() {
+    return Object.entries(IMAGE_PROVIDERS)
+      .flatMap(([providerKey, p]) =>
+        p.models.map((m) => `<option value="${providerKey}:${m.val}">${p.label} — ${m.label}</option>`)
+      )
+      .join('');
+  }
+
   // Cac nha cung cap AI video pho bien nhat thi truong (2026)
   // Icon SVG dang logo cho tung nha cung cap (thay cho emoji, giong phong cach cac app that)
   const PROVIDER_ICONS = {
@@ -1262,12 +1272,8 @@
             <div class="char-picker-row" id="charPickerRow_f_prompt"></div>
           </div>
           <div class="field">
-            <label>${t('t2i_providerLabel')}</label>
-            <select id="f_img_provider">${imageProviderOptionsHtml()}</select>
-          </div>
-          <div class="field">
             <label>${t('t2i_modelLabel')}</label>
-            <select id="f_img_model">${imageModelOptionsHtml('gemini')}</select>
+            <select id="f_img_model">${allImageModelsOptionsHtml()}</select>
           </div>
           <div class="field">
             <label>${t('resolution_label')}</label>
@@ -1283,9 +1289,6 @@
         <div class="hint" id="fxHint">${t('t2i_hint')}</div>
       `,
       afterRender: () => {
-        document.getElementById('f_img_provider').addEventListener('change', (e) => {
-          renderImageModelOptions(e.target.value);
-        });
         document.getElementById('f_tool_grid').addEventListener('click', (e) => {
           const card = e.target.closest('.tool-card');
           if (!card) return;
@@ -1304,8 +1307,7 @@
           return;
         }
         const prompt = document.getElementById('f_prompt').value.trim();
-        const provider = document.getElementById('f_img_provider')?.value || 'gemini';
-        const model = document.getElementById('f_img_model')?.value || 'nano-banana';
+        const [provider, model] = (document.getElementById('f_img_model')?.value || 'gemini:nano-banana').split(':');
         const resolution = document.querySelector('#f_resolution .selected')?.dataset.val || '1K';
         if (!prompt) return alert(t('alert_enterImagePrompt'));
         await callApi('/api/image/generate', { prompt, provider, model, resolution }, 'image');
@@ -1318,8 +1320,7 @@
     const aspectSuffix = aspect !== 'auto' ? ` Output aspect ratio: ${aspect}.` : '';
     const customDescGlobal = document.getElementById('f_custom_desc')?.value.trim();
     const customSuffix = customDescGlobal ? ` Additional instructions: ${customDescGlobal}.` : '';
-    const provider = document.getElementById('f_img_provider')?.value || 'gemini';
-    const model = document.getElementById('f_img_model')?.value || 'nano-banana';
+    const [provider, model] = (document.getElementById('f_img_model')?.value || 'gemini:nano-banana').split(':');
 
     if (tool === 'faceSwap') {
       const faceInput = document.getElementById('f_face_image');
@@ -1489,16 +1490,11 @@
       }
     }
 
-    // Nha cung cap + Model - ap dung cho MOI cong cu (ke ca Face Swap), de nguoi dung
-    // chon dung AI nao xu ly viec sua anh, khong con co dinh Gemini nhu truoc
+    // Model - ap dung cho MOI cong cu (ke ca Face Swap), gop tat ca nha cung cap vao 1 danh sach
     html += `
       <div class="field">
-        <label>${t('t2i_providerLabel')}</label>
-        <select id="f_img_provider">${imageProviderOptionsHtml()}</select>
-      </div>
-      <div class="field">
         <label>${t('t2i_modelLabel')}</label>
-        <select id="f_img_model">${imageModelOptionsHtml('gemini')}</select>
+        <select id="f_img_model">${allImageModelsOptionsHtml()}</select>
       </div>`;
 
     // Mo ta them (tuy chon) - ap dung cho MOI cong cu, nhan va placeholder rieng theo tung cong cu
@@ -1527,10 +1523,6 @@
     container.innerHTML = html;
     if (hintEl) hintEl.textContent = hint;
     bindUploadBoxes(container);
-
-    document.getElementById('f_img_provider')?.addEventListener('change', (e) => {
-      renderImageModelOptions(e.target.value);
-    });
 
     container.querySelectorAll('.pill-group').forEach((group) => {
       group.addEventListener('click', (e) => {
