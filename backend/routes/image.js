@@ -1,9 +1,11 @@
 import express from 'express';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 
 const router = express.Router();
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+// SDK moi cua Google (@google/genai) - tuong thich voi ca key cu (AIzaSy...)
+// lan key moi "Auth key" (AQ....) ma Google chuyen sang tu giua 2026.
+const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const FAL_KEY = process.env.FAL_KEY; // dung lam duong di cho Seedream (ByteDance)
 
@@ -31,21 +33,19 @@ const SEEDREAM_MODEL_MAP = {
 
 async function generateWithGemini({ prompt, model, imageBase64, mimeType, images }) {
   const modelName = GEMINI_MODEL_MAP[model] || GEMINI_MODEL_MAP['nano-banana'];
-  const genModel = genAI.getGenerativeModel({ model: modelName });
 
-  let contentParts = prompt;
+  let contents = prompt;
   if (images && images.length) {
     // Nhieu anh dau vao (vd Face Swap: anh 1 = mat, anh 2 = anh nen)
-    contentParts = [
+    contents = [
       ...images.map((img) => ({ inlineData: { data: img.base64, mimeType: img.mimeType } })),
       { text: prompt },
     ];
   } else if (imageBase64) {
-    contentParts = [{ inlineData: { data: imageBase64, mimeType } }, { text: prompt }];
+    contents = [{ inlineData: { data: imageBase64, mimeType } }, { text: prompt }];
   }
 
-  const result = await genModel.generateContent(contentParts);
-  const response = result.response;
+  const response = await ai.models.generateContent({ model: modelName, contents });
   const imagePart = response.candidates?.[0]?.content?.parts?.find((part) => part.inlineData);
 
   if (!imagePart) throw new Error('Model khong tra ve anh. Thu prompt khac.');
