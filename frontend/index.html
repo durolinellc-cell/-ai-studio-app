@@ -2033,22 +2033,53 @@
   }
 
   // ============================================================
-  // CHARACTER LIBRARY - helpers can co truoc lan render dau tien
-  // (renderCharacterGrid va logic modal con lai nam o script thu 2, ben duoi)
+  // CHARACTER LIBRARY - luu that tren server (khong con dung localStorage nua)
   // ============================================================
-  const CHARACTERS_KEY = 'studio_characters';
-
-  function loadCharacters() {
-    try { return JSON.parse(localStorage.getItem(CHARACTERS_KEY) || '[]'); } catch { return []; }
+  async function loadCharacters() {
+    try {
+      const res = await fetch(`${API_BASE}/api/characters`);
+      const data = await res.json();
+      return data.characters || [];
+    } catch (e) {
+      console.error('Khong the tai danh sach nhan vat:', e);
+      return [];
+    }
   }
-  function saveCharacters(list) {
-    try { localStorage.setItem(CHARACTERS_KEY, JSON.stringify(list)); } catch (e) { console.error('Khong the luu nhan vat:', e); }
+
+  async function createCharacterApi(payload) {
+    const res = await fetch(`${API_BASE}/api/characters`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Khong the tao nhan vat.');
+    return data.character;
   }
 
-  function renderCharPickerChips(textareaId) {
+  async function updateCharacterApi(id, payload) {
+    const res = await fetch(`${API_BASE}/api/characters/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Khong the cap nhat nhan vat.');
+    return data.character;
+  }
+
+  async function deleteCharacterApi(id) {
+    const res = await fetch(`${API_BASE}/api/characters/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || 'Khong the xoa nhan vat.');
+    }
+  }
+
+  async function renderCharPickerChips(textareaId) {
     const row = document.getElementById(`charPickerRow_${textareaId}`);
     if (!row) return;
-    const chars = loadCharacters();
+    const chars = await loadCharacters();
     if (!chars.length) { row.innerHTML = ''; return; }
 
     row.innerHTML = chars.map((c) =>
@@ -2126,13 +2157,14 @@
 
 <script>
   // ============================================================
-  // CHARACTER LIBRARY (luu trong localStorage cua trinh duyet)
+  // CHARACTER LIBRARY (luu that tren server qua /api/characters)
   // ============================================================
 
-  function renderCharacterGrid() {
+  async function renderCharacterGrid() {
     const grid = document.getElementById('characterGrid');
     if (!grid) return;
-    const chars = loadCharacters();
+    grid.innerHTML = `<div class="character-empty">…</div>`;
+    const chars = await loadCharacters();
 
     if (!chars.length) {
       grid.innerHTML = `<div class="character-empty">${t('character_empty')}</div>`;
@@ -2157,8 +2189,9 @@
     });
   }
 
+  let charactersCache = [];
 
-  function openCharacterModal(editId) {
+  async function openCharacterModal(editId) {
     const overlay = document.getElementById('characterModalOverlay');
     const titleEl = document.getElementById('characterModalTitle');
     const nameEl = document.getElementById('charName');
@@ -2173,7 +2206,8 @@
     document.getElementById('charRefImage').dataset.preview = '';
 
     if (editId) {
-      const c = loadCharacters().find((x) => x.id === editId);
+      charactersCache = await loadCharacters();
+      const c = charactersCache.find((x) => x.id === editId);
       if (c) {
         titleEl.textContent = c.name;
         nameEl.value = c.name;
@@ -2202,13 +2236,16 @@
     document.getElementById('characterModalOverlay')?.classList.remove('open');
   }
 
-  document.getElementById('charDeleteBtn')?.addEventListener('click', () => {
+  document.getElementById('charDeleteBtn')?.addEventListener('click', async () => {
     const editId = document.getElementById('charEditId').value;
     if (!editId || !confirm(t('character_deleteConfirm'))) return;
-    const chars = loadCharacters().filter((x) => x.id !== editId);
-    saveCharacters(chars);
-    renderCharacterGrid();
-    closeCharacterModal();
+    try {
+      await deleteCharacterApi(editId);
+      await renderCharacterGrid();
+      closeCharacterModal();
+    } catch (err) {
+      alert(err.message);
+    }
   });
 
   document.getElementById('newCharacterBtn')?.addEventListener('click', () => openCharacterModal(null));
@@ -2254,7 +2291,7 @@
     }
   });
 
-  document.getElementById('charSaveBtn')?.addEventListener('click', () => {
+  document.getElementById('charSaveBtn')?.addEventListener('click', async () => {
     const name = document.getElementById('charName').value.trim();
     if (!name) return alert(t('alert_enterImagePrompt'));
     const lock = document.getElementById('charLock').value.trim();
@@ -2262,16 +2299,21 @@
     const refImage = document.getElementById('charRefImage').dataset.preview || '';
     const editId = document.getElementById('charEditId').value;
 
-    let chars = loadCharacters();
-    if (editId) {
-      const c = chars.find((x) => x.id === editId);
-      if (c) { c.name = name; c.lock = lock; c.expressions = expressions; if (refImage) c.refImage = refImage; }
-    } else {
-      chars.unshift({ id: 'char_' + Date.now(), name, lock, expressions, refImage, createdAt: Date.now() });
+    const saveBtn = document.getElementById('charSaveBtn');
+    saveBtn.disabled = true;
+    try {
+      if (editId) {
+        await updateCharacterApi(editId, { name, lock, expressions, refImage: refImage || undefined });
+      } else {
+        await createCharacterApi({ name, lock, expressions, refImage });
+      }
+      await renderCharacterGrid();
+      closeCharacterModal();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      saveBtn.disabled = false;
     }
-    saveCharacters(chars);
-    renderCharacterGrid();
-    closeCharacterModal();
   });
 
 </script>
