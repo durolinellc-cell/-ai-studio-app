@@ -1291,11 +1291,11 @@
           </div>
           <div class="field">
             <label>${t('t2i_modelLabel')}</label>
-            <button class="model-picker-trigger" id="imgModelPickerBtn" type="button">
-              <span id="imgModelPickerLabel"></span>
+            <button class="model-picker-trigger" id="imgModelPickerBtnAuto" type="button">
+              <span id="imgModelPickerLabelAuto"></span>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
             </button>
-            <input type="hidden" id="f_img_model" value="gemini:nano-banana" />
+            <input type="hidden" id="f_img_model_auto" value="gemini:nano-banana" />
           </div>
           <div class="field">
             <label>${t('resolution_label')}</label>
@@ -1321,8 +1321,8 @@
         });
         updateT2IToolVisibility('generate');
         renderCharPickerChips('f_prompt');
-        updateImageModelPickerLabel();
-        document.getElementById('imgModelPickerBtn')?.addEventListener('click', () => openModelModal('image', 'f_img_model', 'imgModelPickerLabel'));
+        updateModelPickerLabelGeneric('imgModelPickerLabelAuto', 'f_img_model_auto', 'image');
+        document.getElementById('imgModelPickerBtnAuto')?.addEventListener('click', () => openModelModal('image', 'f_img_model_auto', 'imgModelPickerLabelAuto'));
       },
       run: async () => {
         const tool = document.getElementById('f_tool')?.value || 'generate';
@@ -1331,7 +1331,7 @@
           return;
         }
         const prompt = document.getElementById('f_prompt').value.trim();
-        const [provider, model] = (document.getElementById('f_img_model')?.value || 'gemini:nano-banana').split(':');
+        const [provider, model] = (document.getElementById('f_img_model_auto')?.value || 'gemini:nano-banana').split(':');
         const resolution = document.querySelector('#f_resolution .selected')?.dataset.val || '1K';
         if (!prompt) return alert(t('alert_enterImagePrompt'));
         await callApi('/api/image/generate', { prompt, provider, model, resolution }, 'image');
