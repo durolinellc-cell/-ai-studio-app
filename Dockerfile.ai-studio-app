@@ -1,0 +1,18 @@
+# Dockerfile — ai-studio-app (backend serves static frontend from backend/public/)
+FROM node:20-slim
+
+WORKDIR /app
+
+# Only backend has dependencies — copy its package files first for layer caching
+COPY backend/package*.json ./
+RUN npm install --omit=dev
+
+# Copy the rest of the backend, including public/ (which already contains the
+# built/static frontend index.html — no separate frontend build step needed)
+COPY backend/ .
+
+# Cloud Run sets PORT automatically; server.js already reads process.env.PORT
+ENV PORT=8080
+EXPOSE 8080
+
+CMD ["node", "server.js"]
