@@ -43,14 +43,14 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   if (!requireR2(res)) return;
   try {
-    const { type, imageBase64, mimeType, remoteUrl, tool, provider, model } = req.body;
+    const { type, imageBase64, mimeType, remoteUrl, tool, provider, model, prompt } = req.body;
     if (type !== 'image' && type !== 'video') {
       return res.status(400).json({ error: 'Thieu hoac sai "type" (image|video).' });
     }
 
     const id = 'item_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
     const entry = {
-      id, type, tool: tool || '', provider: provider || '', model: model || '',
+      id, type, tool: tool || '', provider: provider || '', model: model || '', prompt: prompt || '',
       label: '', favorite: false, folder: '__unsorted__', createdAt: Date.now(),
     };
 

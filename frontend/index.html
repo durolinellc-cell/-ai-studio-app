@@ -499,7 +499,7 @@
   // ============================================================
   const I18N = {
     vi: {
-      lang_label: 'Ngôn ngữ:', model_modal_title: 'Chọn Model', model_recommended: 'Đề xuất', model_searchPlaceholder: 'Tìm kiếm model...', model_allProviders: 'Tất cả nhà cung cấp', model_locked: 'Chưa kích hoạt', model_auto: 'Auto',
+      lang_label: 'Ngôn ngữ:', model_modal_title: 'Chọn Model', model_recommended: 'Đề xuất', model_searchPlaceholder: 'Tìm kiếm model...', model_allProviders: 'Tất cả nhà cung cấp', model_locked: 'Chưa kích hoạt', lib_detailTitle: 'Chi tiết', lib_detailPromptLabel: 'Prompt đã dùng', lib_detailCopyPrompt: 'Sao chép Prompt', lib_detailNoPrompt: '(Không có prompt — vd: ảnh tải lên tay)', model_auto: 'Auto',
       character_title: 'Nhân vật của bạn', character_newBtn: '+ Tạo nhân vật mới',
       character_nameLabel: 'Tên nhân vật', character_namePlaceholder: 'Ví dụ: Long, C1, Garrick...',
       character_refImageLabel: 'Ảnh tham chiếu (không bắt buộc)',
@@ -584,7 +584,7 @@
       alert_needBgDescription: 'Nhập mô tả nền mới trước đã.',
     },
     en: {
-      lang_label: 'Language:', model_modal_title: 'Select Model', model_recommended: 'Recommended', model_searchPlaceholder: 'Search models...', model_allProviders: 'All providers', model_locked: 'Not enabled', model_auto: 'Auto',
+      lang_label: 'Language:', model_modal_title: 'Select Model', model_recommended: 'Recommended', model_searchPlaceholder: 'Search models...', model_allProviders: 'All providers', model_locked: 'Not enabled', lib_detailTitle: 'Details', lib_detailPromptLabel: 'Prompt used', lib_detailCopyPrompt: 'Copy Prompt', lib_detailNoPrompt: '(No prompt — e.g. manually uploaded image)', model_auto: 'Auto',
       character_title: 'Your Characters', character_newBtn: '+ Create New Character',
       character_nameLabel: 'Character name', character_namePlaceholder: 'E.g.: Long, C1, Garrick...',
       character_refImageLabel: 'Reference image (optional)',
@@ -669,7 +669,7 @@
       alert_needBgDescription: 'Enter a new background description first.',
     },
     es: {
-      lang_label: 'Idioma:', model_modal_title: 'Elegir Modelo', model_recommended: 'Recomendados', model_searchPlaceholder: 'Buscar modelos...', model_allProviders: 'Todos los proveedores', model_locked: 'No habilitado', model_auto: 'Auto',
+      lang_label: 'Idioma:', model_modal_title: 'Elegir Modelo', model_recommended: 'Recomendados', model_searchPlaceholder: 'Buscar modelos...', model_allProviders: 'Todos los proveedores', model_locked: 'No habilitado', lib_detailTitle: 'Detalles', lib_detailPromptLabel: 'Prompt utilizado', lib_detailCopyPrompt: 'Copiar Prompt', lib_detailNoPrompt: '(Sin prompt — ej. imagen subida manualmente)', model_auto: 'Auto',
       character_title: 'Tus Personajes', character_newBtn: '+ Crear Nuevo Personaje',
       character_nameLabel: 'Nombre del personaje', character_namePlaceholder: 'Ej.: Long, C1, Garrick...',
       character_refImageLabel: 'Imagen de referencia (opcional)',
@@ -754,7 +754,7 @@
       alert_needBgDescription: 'Primero escribe una descripción del nuevo fondo.',
     },
     zh: {
-      lang_label: '语言：', model_modal_title: '选择模型', model_recommended: '推荐', model_searchPlaceholder: '搜索模型...', model_allProviders: '全部供应商', model_locked: '尚未启用', model_auto: '自动',
+      lang_label: '语言：', model_modal_title: '选择模型', model_recommended: '推荐', model_searchPlaceholder: '搜索模型...', model_allProviders: '全部供应商', model_locked: '尚未启用', lib_detailTitle: '详情', lib_detailPromptLabel: '使用的提示词', lib_detailCopyPrompt: '复制提示词', lib_detailNoPrompt: '（无提示词 — 例如手动上传的图片）', model_auto: '自动',
       character_title: '我的角色', character_newBtn: '+ 创建新角色',
       character_nameLabel: '角色名称', character_namePlaceholder: '例如：Long、C1、Garrick...',
       character_refImageLabel: '参考图片（可选）',
@@ -1828,11 +1828,11 @@
 
       if (kind === 'video') {
         setCanvasResult('video', data.videoUrl, genMeta);
-        await addLibItem({ type: 'video', dataUrl: data.videoUrl, tool: activeTab, provider: body.provider, model: body.model });
+        await addLibItem({ type: 'video', dataUrl: data.videoUrl, tool: activeTab, provider: body.provider, model: body.model, prompt: body.prompt });
       } else {
         const dataUrl = `data:${data.mimeType};base64,${data.imageBase64}`;
         setCanvasResult('image', dataUrl, genMeta);
-        await addLibItem({ type: 'image', dataUrl, tool: activeTab, provider: body.provider, model: body.model });
+        await addLibItem({ type: 'image', dataUrl, tool: activeTab, provider: body.provider, model: body.model, prompt: body.prompt });
       }
     } catch (err) {
       setCanvasError(err.message);
@@ -1866,18 +1866,18 @@
 
   let activeFolder = '__all__'; // '__all__' | '__unsorted__' | ten thu muc
 
-  async function addLibItem({ type, dataUrl, tool, provider, model }) {
+  async function addLibItem({ type, dataUrl, tool, provider, model, prompt }) {
     try {
       let payload;
       if (type === 'video') {
-        payload = { type: 'video', remoteUrl: dataUrl, tool, provider, model };
+        payload = { type: 'video', remoteUrl: dataUrl, tool, provider, model, prompt };
       } else {
         // dataUrl dang "data:image/png;base64,AAAA..." - tach phan mimeType va base64 rieng
         const match = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
         if (match) {
-          payload = { type: 'image', mimeType: match[1], imageBase64: match[2], tool, provider, model };
+          payload = { type: 'image', mimeType: match[1], imageBase64: match[2], tool, provider, model, prompt };
         } else {
-          payload = { type: 'image', remoteUrl: dataUrl, tool, provider, model }; // du phong neu khong phai data URI
+          payload = { type: 'image', remoteUrl: dataUrl, tool, provider, model, prompt }; // du phong neu khong phai data URI
         }
       }
       const res = await fetch(`${API_BASE}/api/library`, {
@@ -2012,8 +2012,8 @@
         const currentItems = await loadLibItems();
         const it = currentItems.find((i) => i.id === el.dataset.id);
         if (!it) return;
-        setCanvasResult(it.type, it.fileUrl, { tool: it.tool, provider: it.provider, model: it.model, createdAt: it.createdAt });
         selectedLibItemId = it.id;
+        openLibDetailModal(it);
       });
     });
   }
@@ -2299,6 +2299,27 @@
   </div>
 </div>
 
+<div class="model-modal-overlay" id="libDetailModalOverlay">
+  <div class="model-modal" style="max-width:640px;">
+    <div class="model-modal-header">
+      <h3 data-i18n="lib_detailTitle"></h3>
+      <button class="model-modal-close" id="libDetailModalClose">×</button>
+    </div>
+    <div class="model-modal-body">
+      <div id="libDetailMedia" style="text-align:center; margin-bottom:16px;"></div>
+      <div class="canvas-summary" id="libDetailChips" style="justify-content:flex-start; margin-bottom:14px;"></div>
+      <div class="field">
+        <label data-i18n="lib_detailPromptLabel"></label>
+        <textarea id="libDetailPrompt" readonly style="min-height:90px;"></textarea>
+      </div>
+      <button class="lib-textbtn" id="libDetailCopyBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg>
+        <span data-i18n="lib_detailCopyPrompt"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="model-modal-overlay" id="modelModalOverlay">
   <div class="model-modal">
     <div class="model-modal-header">
@@ -2579,6 +2600,46 @@
   function closeModelModal() {
     document.getElementById('modelModalOverlay')?.classList.remove('open');
   }
+
+  // ============================================================
+  // LIBRARY DETAIL MODAL - popup chi tiet khi bam vao 1 muc trong Thu vien
+  // ============================================================
+  function openLibDetailModal(item) {
+    const mediaEl = document.getElementById('libDetailMedia');
+    const chipsEl = document.getElementById('libDetailChips');
+    const promptEl = document.getElementById('libDetailPrompt');
+
+    mediaEl.innerHTML = item.type === 'video'
+      ? `<video src="${item.fileUrl}" controls autoplay loop style="max-width:100%; max-height:50vh; border-radius:10px;"></video>`
+      : `<img src="${item.fileUrl}" alt="" style="max-width:100%; max-height:50vh; border-radius:10px;" />`;
+
+    const chips = [];
+    if (item.tool) chips.push(t('tab_' + item.tool) !== 'tab_' + item.tool ? t('tab_' + item.tool) : item.tool);
+    if (item.provider) chips.push(item.provider);
+    if (item.model) chips.push(item.model);
+    if (item.createdAt) chips.push(formatDateTime(item.createdAt));
+    chipsEl.innerHTML = chips.map((c) => `<span class="canvas-summary-chip">${c}</span>`).join('');
+
+    promptEl.value = item.prompt && item.prompt.trim() ? item.prompt : t('lib_detailNoPrompt');
+
+    document.getElementById('libDetailModalOverlay')?.classList.add('open');
+  }
+  function closeLibDetailModal() {
+    document.getElementById('libDetailModalOverlay')?.classList.remove('open');
+  }
+
+  document.getElementById('libDetailModalClose')?.addEventListener('click', closeLibDetailModal);
+  document.getElementById('libDetailModalOverlay')?.addEventListener('click', (e) => {
+    if (e.target.id === 'libDetailModalOverlay') closeLibDetailModal();
+  });
+  document.getElementById('libDetailCopyBtn')?.addEventListener('click', async () => {
+    const promptEl = document.getElementById('libDetailPrompt');
+    try {
+      await navigator.clipboard.writeText(promptEl.value);
+    } catch {
+      promptEl.select(); // du phong cho trinh duyet khong ho tro Clipboard API
+    }
+  });
 
   document.getElementById('modelModalClose')?.addEventListener('click', closeModelModal);
   document.getElementById('modelModalOverlay')?.addEventListener('click', (e) => {
