@@ -515,7 +515,7 @@
       character_expressionLabel: 'Biểu cảm/thẻ (cách nhau bằng dấu phẩy)', character_expressionPlaceholder: 'vui vẻ, nghiêm túc, tức giận, ngạc nhiên...',
       character_saveBtn: 'Lưu nhân vật', character_empty: 'Chưa có nhân vật nào. Bấm "+ Tạo nhân vật mới" để bắt đầu.',
       character_useInPrompt: 'Dùng nhân vật', character_autoDetecting: 'Đang tự động đọc ảnh và điền mô tả...', character_deleteConfirm: 'Xoá nhân vật này?', character_editBtn: 'Sửa', character_deleteBtn: 'Xoá', model_autoDesc: 'Tự động chọn model tốt nhất dựa trên mô tả', layout_label: 'Bố cục', layout_showLibrary: 'Hiện Thư viện', layout_showSidebar: 'Hiện menu bên trái', appbar_help: 'Trợ giúp', appbar_upgrade: 'Nâng cấp', appbar_signIn: 'Đăng nhập', appbar_promptName: 'Nhập tên của bạn:', appbar_logoutConfirm: 'Đăng xuất khỏi tài khoản này?', contentType_label: 'Loại nội dung', nav_explore: 'Khám phá', nav_assets: 'Tài nguyên', nav_character: 'Nhân vật', nav_tool: 'Tool', nav_generate: 'Tạo mới', nav_canvas: 'Canvas', nav_allTools: 'Tất cả',
-      tab_t2i: 'Text to Image', tab_t2v: 'Text to Video', tab_i2v: 'Image to Video', tab_fx: 'Công cụ ảnh',
+      tab_t2i: 'Text to Image', tab_t2v: 'Text to Video', tab_i2v: 'Image to Video', tab_character: 'Nhân vật', tab_fx: 'Công cụ ảnh',
       canvas_emptyTitle: 'Chưa có nội dung nào', canvas_emptyHint: 'Điền thông tin bên trái rồi bấm Tạo để bắt đầu.',
       canvas_errorTitle: 'Có lỗi xảy ra',
       loading_video: 'Đang tạo video, có thể mất 1-2 phút...', loading_image: 'Đang tạo ảnh...',
@@ -600,7 +600,7 @@
       character_expressionLabel: 'Expressions/tags (comma-separated)', character_expressionPlaceholder: 'happy, serious, angry, surprised...',
       character_saveBtn: 'Save Character', character_empty: 'No characters yet. Click "+ Create New Character" to start.',
       character_useInPrompt: 'Use character', character_autoDetecting: 'Auto-reading image and filling description...', character_deleteConfirm: 'Delete this character?', character_editBtn: 'Edit', character_deleteBtn: 'Delete', model_autoDesc: 'Auto-select the best model based on the prompt', layout_label: 'Layout', layout_showLibrary: 'Show Library', layout_showSidebar: 'Show left menu', appbar_help: 'Help', appbar_upgrade: 'Upgrade', appbar_signIn: 'Sign in', appbar_promptName: 'Enter your name:', appbar_logoutConfirm: 'Sign out of this account?', contentType_label: 'Content type', nav_explore: 'Explore', nav_assets: 'Assets', nav_character: 'Character', nav_tool: 'Tool', nav_generate: 'Generate', nav_canvas: 'Canvas', nav_allTools: 'All Tools',
-      tab_t2i: 'Text to Image', tab_t2v: 'Text to Video', tab_i2v: 'Image to Video', tab_fx: 'Image Tools',
+      tab_t2i: 'Text to Image', tab_t2v: 'Text to Video', tab_i2v: 'Image to Video', tab_character: 'Character', tab_fx: 'Image Tools',
       canvas_emptyTitle: 'Nothing here yet', canvas_emptyHint: 'Fill in the details on the left, then click Generate to start.',
       canvas_errorTitle: 'Something went wrong',
       loading_video: 'Generating video, this can take 1-2 minutes...', loading_image: 'Generating image...',
@@ -685,7 +685,7 @@
       character_expressionLabel: 'Expresiones/etiquetas (separadas por comas)', character_expressionPlaceholder: 'feliz, serio, enojado, sorprendido...',
       character_saveBtn: 'Guardar Personaje', character_empty: 'Aún no hay personajes. Haz clic en "+ Crear Nuevo Personaje" para empezar.',
       character_useInPrompt: 'Usar personaje', character_autoDetecting: 'Leyendo la imagen automáticamente y completando la descripción...', character_deleteConfirm: '¿Eliminar este personaje?', character_editBtn: 'Editar', character_deleteBtn: 'Eliminar', model_autoDesc: 'Selecciona automáticamente el mejor modelo según el prompt', layout_label: 'Diseño', layout_showLibrary: 'Mostrar Biblioteca', layout_showSidebar: 'Mostrar menú izquierdo', appbar_help: 'Ayuda', appbar_upgrade: 'Mejorar', appbar_signIn: 'Iniciar sesión', appbar_promptName: 'Ingresa tu nombre:', appbar_logoutConfirm: '¿Cerrar sesión de esta cuenta?', contentType_label: 'Tipo de contenido', nav_explore: 'Explorar', nav_assets: 'Recursos', nav_character: 'Personaje', nav_tool: 'Tool', nav_generate: 'Generar', nav_canvas: 'Lienzo', nav_allTools: 'Todo',
-      tab_t2i: 'Texto a Imagen', tab_t2v: 'Texto a Video', tab_i2v: 'Imagen a Video', tab_fx: 'Herramientas de Imagen',
+      tab_t2i: 'Texto a Imagen', tab_t2v: 'Texto a Video', tab_i2v: 'Imagen a Video', tab_character: 'Personaje', tab_fx: 'Herramientas de Imagen',
       canvas_emptyTitle: 'Todavía no hay nada aquí', canvas_emptyHint: 'Completa los datos a la izquierda y pulsa Generar para empezar.',
       canvas_errorTitle: 'Ocurrió un error',
       loading_video: 'Generando video, puede tardar 1-2 minutos...', loading_image: 'Generando imagen...',
@@ -770,7 +770,7 @@
       character_expressionLabel: '表情/标签（用逗号分隔）', character_expressionPlaceholder: '开心、严肃、生气、惊讶...',
       character_saveBtn: '保存角色', character_empty: '暂无角色。点击"+ 创建新角色"开始。',
       character_useInPrompt: '使用角色', character_autoDetecting: '正在自动读取图片并填写描述...', character_deleteConfirm: '删除此角色？', character_editBtn: '编辑', character_deleteBtn: '删除', model_autoDesc: '根据提示词自动选择最佳模型', layout_label: '布局', layout_showLibrary: '显示素材库', layout_showSidebar: '显示左侧菜单', appbar_help: '帮助', appbar_upgrade: '升级', appbar_signIn: '登录', appbar_promptName: '输入你的名字：', appbar_logoutConfirm: '退出此账号？', contentType_label: '内容类型', nav_explore: '探索', nav_assets: '素材', nav_character: '角色', nav_tool: '工具', nav_generate: '生成', nav_canvas: '画布', nav_allTools: '全部工具',
-      tab_t2i: '文生图', tab_t2v: '文生视频', tab_i2v: '图生视频', tab_fx: '图片工具',
+      tab_t2i: '文生图', tab_t2v: '文生视频', tab_i2v: '图生视频', tab_character: '角色', tab_fx: '图片工具',
       canvas_emptyTitle: '暂无内容', canvas_emptyHint: '在左侧填写信息，然后点击生成开始。',
       canvas_errorTitle: '出错了',
       loading_video: '正在生成视频，可能需要1-2分钟...', loading_image: '正在生成图片...',
@@ -2482,6 +2482,13 @@
     const img = document.createElement('img');
     img.src = dataUrl;
     box.appendChild(img);
+
+    // Luu anh tham chieu nay vao Thu vien luon, giong nhu moi anh tao ra tu cac cong cu khac
+    const charNameNow = document.getElementById('charName')?.value.trim();
+    await addLibItem({
+      type: 'image', dataUrl, tool: 'character',
+      prompt: charNameNow ? `${t('character_refImageLabel')}: ${charNameNow}` : t('character_refImageLabel'),
+    });
 
     // Tu dong doc anh va dien vao o "Mo ta co dinh" bang Claude vision
     const lockEl = document.getElementById('charLock');
