@@ -308,6 +308,14 @@
     font-size: 0.72rem; color: var(--muted); background: var(--panel-2); border: 1px solid var(--border);
     padding: 4px 10px; border-radius: 999px; white-space: nowrap;
   }
+  .lib-detail-toolbar { display: flex; justify-content: center; gap: 8px; padding: 8px 0 4px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+  .lib-detail-action-btn {
+    width: 34px; height: 34px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--border);
+    color: var(--muted); display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .lib-detail-action-btn svg { width: 16px; height: 16px; }
+  .lib-detail-action-btn:hover { color: var(--text); border-color: var(--accent-2); }
+  .lib-detail-action-btn.active { color: #ffd166; border-color: #ffd166; }
   .status-line { margin-top: 14px; font-size: 0.85rem; color: var(--muted); }
   .status-line.error { color: var(--danger); }
   .spinner {
@@ -499,7 +507,7 @@
   // ============================================================
   const I18N = {
     vi: {
-      lang_label: 'Ngôn ngữ:', model_modal_title: 'Chọn Model', model_recommended: 'Đề xuất', model_searchPlaceholder: 'Tìm kiếm model...', model_allProviders: 'Tất cả nhà cung cấp', model_locked: 'Chưa kích hoạt', lib_detailTitle: 'Chi tiết', lib_detailPromptLabel: 'Prompt đã dùng', lib_detailCopyPrompt: 'Sao chép Prompt', lib_detailNoPrompt: '(Không có prompt — vd: ảnh tải lên tay)', model_auto: 'Auto',
+      lang_label: 'Ngôn ngữ:', model_modal_title: 'Chọn Model', model_recommended: 'Đề xuất', model_searchPlaceholder: 'Tìm kiếm model...', model_allProviders: 'Tất cả nhà cung cấp', model_locked: 'Chưa kích hoạt', lib_detailTitle: 'Chi tiết', lib_detailPromptLabel: 'Prompt đã dùng', lib_detailCopyPrompt: 'Sao chép Prompt', lib_detailNoPrompt: '(Không có prompt — vd: ảnh tải lên tay)', lib_deleteConfirm: 'Xoá mục này khỏi Thư viện?', lib_shareLinkCopied: 'Đã sao chép link chia sẻ', lib_promptMoveToFolder: 'Nhập tên thư mục muốn chuyển đến (để trống = Chưa phân loại):', lib_existingFolders: 'Thư mục hiện có', model_auto: 'Auto',
       character_title: 'Nhân vật của bạn', character_newBtn: '+ Tạo nhân vật mới',
       character_nameLabel: 'Tên nhân vật', character_namePlaceholder: 'Ví dụ: Long, C1, Garrick...',
       character_refImageLabel: 'Ảnh tham chiếu (không bắt buộc)',
@@ -584,7 +592,7 @@
       alert_needBgDescription: 'Nhập mô tả nền mới trước đã.',
     },
     en: {
-      lang_label: 'Language:', model_modal_title: 'Select Model', model_recommended: 'Recommended', model_searchPlaceholder: 'Search models...', model_allProviders: 'All providers', model_locked: 'Not enabled', lib_detailTitle: 'Details', lib_detailPromptLabel: 'Prompt used', lib_detailCopyPrompt: 'Copy Prompt', lib_detailNoPrompt: '(No prompt — e.g. manually uploaded image)', model_auto: 'Auto',
+      lang_label: 'Language:', model_modal_title: 'Select Model', model_recommended: 'Recommended', model_searchPlaceholder: 'Search models...', model_allProviders: 'All providers', model_locked: 'Not enabled', lib_detailTitle: 'Details', lib_detailPromptLabel: 'Prompt used', lib_detailCopyPrompt: 'Copy Prompt', lib_detailNoPrompt: '(No prompt — e.g. manually uploaded image)', lib_deleteConfirm: 'Delete this item from the Library?', lib_shareLinkCopied: 'Share link copied', lib_promptMoveToFolder: 'Enter the folder name to move to (leave empty = Unsorted):', lib_existingFolders: 'Existing folders', model_auto: 'Auto',
       character_title: 'Your Characters', character_newBtn: '+ Create New Character',
       character_nameLabel: 'Character name', character_namePlaceholder: 'E.g.: Long, C1, Garrick...',
       character_refImageLabel: 'Reference image (optional)',
@@ -669,7 +677,7 @@
       alert_needBgDescription: 'Enter a new background description first.',
     },
     es: {
-      lang_label: 'Idioma:', model_modal_title: 'Elegir Modelo', model_recommended: 'Recomendados', model_searchPlaceholder: 'Buscar modelos...', model_allProviders: 'Todos los proveedores', model_locked: 'No habilitado', lib_detailTitle: 'Detalles', lib_detailPromptLabel: 'Prompt utilizado', lib_detailCopyPrompt: 'Copiar Prompt', lib_detailNoPrompt: '(Sin prompt — ej. imagen subida manualmente)', model_auto: 'Auto',
+      lang_label: 'Idioma:', model_modal_title: 'Elegir Modelo', model_recommended: 'Recomendados', model_searchPlaceholder: 'Buscar modelos...', model_allProviders: 'Todos los proveedores', model_locked: 'No habilitado', lib_detailTitle: 'Detalles', lib_detailPromptLabel: 'Prompt utilizado', lib_detailCopyPrompt: 'Copiar Prompt', lib_detailNoPrompt: '(Sin prompt — ej. imagen subida manualmente)', lib_deleteConfirm: '¿Eliminar este elemento de la Biblioteca?', lib_shareLinkCopied: 'Enlace copiado', lib_promptMoveToFolder: 'Ingresa el nombre de la carpeta destino (vacío = Sin clasificar):', lib_existingFolders: 'Carpetas existentes', model_auto: 'Auto',
       character_title: 'Tus Personajes', character_newBtn: '+ Crear Nuevo Personaje',
       character_nameLabel: 'Nombre del personaje', character_namePlaceholder: 'Ej.: Long, C1, Garrick...',
       character_refImageLabel: 'Imagen de referencia (opcional)',
@@ -754,7 +762,7 @@
       alert_needBgDescription: 'Primero escribe una descripción del nuevo fondo.',
     },
     zh: {
-      lang_label: '语言：', model_modal_title: '选择模型', model_recommended: '推荐', model_searchPlaceholder: '搜索模型...', model_allProviders: '全部供应商', model_locked: '尚未启用', lib_detailTitle: '详情', lib_detailPromptLabel: '使用的提示词', lib_detailCopyPrompt: '复制提示词', lib_detailNoPrompt: '（无提示词 — 例如手动上传的图片）', model_auto: '自动',
+      lang_label: '语言：', model_modal_title: '选择模型', model_recommended: '推荐', model_searchPlaceholder: '搜索模型...', model_allProviders: '全部供应商', model_locked: '尚未启用', lib_detailTitle: '详情', lib_detailPromptLabel: '使用的提示词', lib_detailCopyPrompt: '复制提示词', lib_detailNoPrompt: '（无提示词 — 例如手动上传的图片）', lib_deleteConfirm: '从素材库中删除此项？', lib_shareLinkCopied: '分享链接已复制', lib_promptMoveToFolder: '输入要移动到的文件夹名称（留空 = 未分类）：', lib_existingFolders: '现有文件夹', model_auto: '自动',
       character_title: '我的角色', character_newBtn: '+ 创建新角色',
       character_nameLabel: '角色名称', character_namePlaceholder: '例如：Long、C1、Garrick...',
       character_refImageLabel: '参考图片（可选）',
@@ -2306,8 +2314,33 @@
       <button class="model-modal-close" id="libDetailModalClose">×</button>
     </div>
     <div class="model-modal-body">
-      <div id="libDetailMedia" style="text-align:center; margin-bottom:16px;"></div>
-      <div class="canvas-summary" id="libDetailChips" style="justify-content:flex-start; margin-bottom:14px;"></div>
+      <div id="libDetailMedia" style="text-align:center; margin-bottom:12px;"></div>
+
+      <div class="lib-detail-toolbar" id="libDetailToolbar">
+        <button class="lib-detail-action-btn" id="libActionFullscreen" title="Full screen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/></svg>
+        </button>
+        <button class="lib-detail-action-btn" id="libActionDelete" title="Delete">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/></svg>
+        </button>
+        <button class="lib-detail-action-btn" id="libActionShare" title="Share">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15V4M8 8l4-4 4 4M5 13v6a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-6"/></svg>
+        </button>
+        <button class="lib-detail-action-btn" id="libActionTag" title="Tag / rename">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 8a2 2 0 0 1 0 3l-6 6a2 2 0 0 1-3 0l-8-8V4a1 1 0 0 1 1-1z"/><circle cx="9" cy="8" r="1.3" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <button class="lib-detail-action-btn" id="libActionMove" title="Move to folder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg>
+        </button>
+        <button class="lib-detail-action-btn" id="libActionFavorite" title="Favorite">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4l2.5 5.5 6 .7-4.5 4 1.3 6-5.3-3-5.3 3 1.3-6-4.5-4 6-.7z"/></svg>
+        </button>
+        <button class="lib-detail-action-btn" id="libActionDownload" title="Download">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4v11M8 11l4 4 4-4M5 19h14"/></svg>
+        </button>
+      </div>
+
+      <div class="canvas-summary" id="libDetailChips" style="justify-content:flex-start; margin: 4px 0 14px;"></div>
       <div class="field">
         <label data-i18n="lib_detailPromptLabel"></label>
         <textarea id="libDetailPrompt" readonly style="min-height:90px;"></textarea>
@@ -2604,14 +2637,17 @@
   // ============================================================
   // LIBRARY DETAIL MODAL - popup chi tiet khi bam vao 1 muc trong Thu vien
   // ============================================================
+  let libDetailCurrentItem = null;
+
   function openLibDetailModal(item) {
+    libDetailCurrentItem = item;
     const mediaEl = document.getElementById('libDetailMedia');
     const chipsEl = document.getElementById('libDetailChips');
     const promptEl = document.getElementById('libDetailPrompt');
 
     mediaEl.innerHTML = item.type === 'video'
-      ? `<video src="${item.fileUrl}" controls autoplay loop style="max-width:100%; max-height:50vh; border-radius:10px;"></video>`
-      : `<img src="${item.fileUrl}" alt="" style="max-width:100%; max-height:50vh; border-radius:10px;" />`;
+      ? `<video src="${item.fileUrl}" controls autoplay loop style="max-width:100%; max-height:45vh; border-radius:10px;"></video>`
+      : `<img src="${item.fileUrl}" alt="" style="max-width:100%; max-height:45vh; border-radius:10px;" />`;
 
     const chips = [];
     if (item.tool) chips.push(t('tab_' + item.tool) !== 'tab_' + item.tool ? t('tab_' + item.tool) : item.tool);
@@ -2622,10 +2658,13 @@
 
     promptEl.value = item.prompt && item.prompt.trim() ? item.prompt : t('lib_detailNoPrompt');
 
+    document.getElementById('libActionFavorite')?.classList.toggle('active', Boolean(item.favorite));
+
     document.getElementById('libDetailModalOverlay')?.classList.add('open');
   }
   function closeLibDetailModal() {
     document.getElementById('libDetailModalOverlay')?.classList.remove('open');
+    libDetailCurrentItem = null;
   }
 
   document.getElementById('libDetailModalClose')?.addEventListener('click', closeLibDetailModal);
@@ -2639,6 +2678,115 @@
     } catch {
       promptEl.select(); // du phong cho trinh duyet khong ho tro Clipboard API
     }
+  });
+
+  // 1. Toan man hinh
+  document.getElementById('libActionFullscreen')?.addEventListener('click', () => {
+    const mediaEl = document.querySelector('#libDetailMedia img, #libDetailMedia video');
+    mediaEl?.requestFullscreen?.().catch((err) => console.error('Khong the vao fullscreen:', err));
+  });
+
+  // 2. Xoa
+  document.getElementById('libActionDelete')?.addEventListener('click', async () => {
+    if (!libDetailCurrentItem) return;
+    if (!confirm(t('lib_deleteConfirm'))) return;
+    try {
+      await fetch(`${API_BASE}/api/library/${libDetailCurrentItem.id}`, { method: 'DELETE' });
+      closeLibDetailModal();
+      renderLibrary();
+    } catch (err) {
+      console.error('Khong the xoa:', err);
+    }
+  });
+
+  // 3. Chia se
+  document.getElementById('libActionShare')?.addEventListener('click', async () => {
+    if (!libDetailCurrentItem) return;
+    const fullUrl = libDetailCurrentItem.fileUrl.startsWith('http')
+      ? libDetailCurrentItem.fileUrl
+      : window.location.origin + libDetailCurrentItem.fileUrl;
+    if (navigator.share) {
+      try { await navigator.share({ url: fullUrl }); } catch {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(fullUrl);
+        alert(t('lib_shareLinkCopied'));
+      } catch {
+        prompt(t('lib_shareLinkCopied'), fullUrl);
+      }
+    }
+  });
+
+  // 4. Gan nhan / doi ten
+  document.getElementById('libActionTag')?.addEventListener('click', async () => {
+    if (!libDetailCurrentItem) return;
+    const name = prompt(t('lib_promptRenameItem'), libDetailCurrentItem.label || '');
+    if (name === null) return;
+    try {
+      await fetch(`${API_BASE}/api/library/${libDetailCurrentItem.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ label: name.trim() }),
+      });
+      libDetailCurrentItem.label = name.trim();
+      renderLibrary();
+    } catch (err) {
+      console.error('Khong the gan nhan:', err);
+    }
+  });
+
+  // 5. Chuyen thu muc
+  document.getElementById('libActionMove')?.addEventListener('click', async () => {
+    if (!libDetailCurrentItem) return;
+    const folders = loadLibFolders();
+    const list = folders.length ? folders.join(', ') : '(chua co thu muc nao)';
+    const name = prompt(`${t('lib_promptMoveToFolder')}\n${t('lib_existingFolders')}: ${list}`, libDetailCurrentItem.folder === '__unsorted__' ? '' : libDetailCurrentItem.folder);
+    if (name === null) return;
+    const targetFolder = name.trim() || '__unsorted__';
+    if (targetFolder !== '__unsorted__' && !folders.includes(targetFolder)) {
+      folders.push(targetFolder);
+      saveLibFolders(folders);
+    }
+    try {
+      await fetch(`${API_BASE}/api/library/${libDetailCurrentItem.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folder: targetFolder }),
+      });
+      libDetailCurrentItem.folder = targetFolder;
+      renderLibrary();
+    } catch (err) {
+      console.error('Khong the chuyen thu muc:', err);
+    }
+  });
+
+  // 6. Yeu thich
+  document.getElementById('libActionFavorite')?.addEventListener('click', async () => {
+    if (!libDetailCurrentItem) return;
+    const newFav = !libDetailCurrentItem.favorite;
+    try {
+      await fetch(`${API_BASE}/api/library/${libDetailCurrentItem.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ favorite: newFav }),
+      });
+      libDetailCurrentItem.favorite = newFav;
+      document.getElementById('libActionFavorite')?.classList.toggle('active', newFav);
+      renderLibrary();
+    } catch (err) {
+      console.error('Khong the cap nhat yeu thich:', err);
+    }
+  });
+
+  // 7. Tai xuong
+  document.getElementById('libActionDownload')?.addEventListener('click', () => {
+    if (!libDetailCurrentItem) return;
+    const a = document.createElement('a');
+    a.href = libDetailCurrentItem.fileUrl;
+    a.download = `${libDetailCurrentItem.label || libDetailCurrentItem.id}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   });
 
   document.getElementById('modelModalClose')?.addEventListener('click', closeModelModal);
