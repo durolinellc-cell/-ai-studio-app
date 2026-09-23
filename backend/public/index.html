@@ -862,29 +862,39 @@
   });
 
   // Cac nha cung cap model tao ANH pho bien nhat (2026)
+  // Icon SVG dang logo cho nha cung cap anh
+  const IMAGE_PROVIDER_ICONS = {
+    gemini: '<svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.5 12.2c0-.8-.1-1.5-.2-2.2H12v4.2h5.9a5 5 0 0 1-2.2 3.3v2.7h3.6c2.1-1.9 3.2-4.8 3.2-8z"/><path fill="#34A853" d="M12 23c3 0 5.4-1 7.2-2.7l-3.6-2.7c-1 .7-2.2 1.1-3.6 1.1-2.8 0-5.1-1.9-6-4.4H2.3v2.8A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M6 14.3a6.6 6.6 0 0 1 0-4.2V7.3H2.3a11 11 0 0 0 0 9.4z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3.1.6 4.3 1.7l3.2-3.2A11 11 0 0 0 2.3 7.3L6 10.1c.9-2.5 3.2-4.4 6-4.4z"/></svg>',
+    openai: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 3l6 3.5v7L9 17l-6-3.5v-7z"/><path d="M15 3l6 3.5v7l-6 3.5"/></svg>',
+    bytedance: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="4" y="12" width="3" height="8" rx="1"/><rect x="10.5" y="7" width="3" height="13" rx="1"/><rect x="17" y="3" width="3" height="17" rx="1"/></svg>',
+  };
+
   const IMAGE_PROVIDERS = {
     gemini: {
       label: 'Google Gemini',
       active: true,
+      icon: IMAGE_PROVIDER_ICONS.gemini,
       models: [
-        { val: 'nano-banana', label: 'Nano Banana (2.5 Flash)' },
-        { val: 'nano-banana-2', label: 'Nano Banana 2 (3.1 Flash)' },
-        { val: 'nano-banana-2-lite', label: 'Nano Banana 2 Lite' },
-        { val: 'nano-banana-pro', label: 'Nano Banana Pro (3 Pro)' },
+        { val: 'nano-banana', label: 'Nano Banana (2.5 Flash)', desc: 'On dinh, nhanh, dung rong rai', tag: 'Recommended', res: 'up to 1K' },
+        { val: 'nano-banana-2', label: 'Nano Banana 2 (3.1 Flash)', desc: 'Chat luong cao hon, chi tiet hon', tag: 'New', res: 'up to 2K' },
+        { val: 'nano-banana-2-lite', label: 'Nano Banana 2 Lite', desc: 'Nhe hon, xu ly nhanh hon', tag: 'Fast', res: 'up to 1K' },
+        { val: 'nano-banana-pro', label: 'Nano Banana Pro (3 Pro)', desc: 'Chat luong cao nhat dong Gemini', tag: 'New', res: 'up to 4K' },
       ],
     },
     openai: {
       label: 'OpenAI',
       active: true,
+      icon: IMAGE_PROVIDER_ICONS.openai,
       models: [
-        { val: 'gpt-image-2', label: 'GPT Image 2' },
-        { val: 'gpt-image-2.5', label: 'GPT Image 2.5' },
+        { val: 'gpt-image-2', label: 'GPT Image 2', desc: 'Model tao anh cua OpenAI', res: 'up to 2K' },
+        { val: 'gpt-image-2.5', label: 'GPT Image 2.5', desc: 'Nang cap chi tiet va do chinh xac prompt', tag: 'New', res: 'up to 4K' },
       ],
     },
     bytedance: {
       label: 'ByteDance',
       active: true,
-      models: [{ val: 'seedream-5-pro', label: 'Seedream 5.0 Pro' }],
+      icon: IMAGE_PROVIDER_ICONS.bytedance,
+      models: [{ val: 'seedream-5-pro', label: 'Seedream 5.0 Pro', desc: 'Model tao anh flagship cua ByteDance', tag: 'New', res: 'up to 2K' }],
     },
   };
 
@@ -1273,7 +1283,11 @@
           </div>
           <div class="field">
             <label>${t('t2i_modelLabel')}</label>
-            <select id="f_img_model">${allImageModelsOptionsHtml()}</select>
+            <button class="model-picker-trigger" id="imgModelPickerBtn" type="button">
+              <span id="imgModelPickerLabel"></span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <input type="hidden" id="f_img_model" value="gemini:nano-banana" />
           </div>
           <div class="field">
             <label>${t('resolution_label')}</label>
@@ -1299,6 +1313,8 @@
         });
         updateT2IToolVisibility('generate');
         renderCharPickerChips('f_prompt');
+        updateImageModelPickerLabel();
+        document.getElementById('imgModelPickerBtn')?.addEventListener('click', () => openModelModal('image', 'f_img_model', 'imgModelPickerLabel'));
       },
       run: async () => {
         const tool = document.getElementById('f_tool')?.value || 'generate';
@@ -1494,7 +1510,11 @@
     html += `
       <div class="field">
         <label>${t('t2i_modelLabel')}</label>
-        <select id="f_img_model">${allImageModelsOptionsHtml()}</select>
+        <button class="model-picker-trigger" id="imgModelPickerBtn" type="button">
+          <span id="imgModelPickerLabel"></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <input type="hidden" id="f_img_model" value="gemini:nano-banana" />
       </div>`;
 
     // Mo ta them (tuy chon) - ap dung cho MOI cong cu, nhan va placeholder rieng theo tung cong cu
@@ -1523,6 +1543,9 @@
     container.innerHTML = html;
     if (hintEl) hintEl.textContent = hint;
     bindUploadBoxes(container);
+
+    updateImageModelPickerLabel();
+    document.getElementById('imgModelPickerBtn')?.addEventListener('click', () => openModelModal('image', 'f_img_model', 'imgModelPickerLabel'));
 
     container.querySelectorAll('.pill-group').forEach((group) => {
       group.addEventListener('click', (e) => {
@@ -2180,6 +2203,64 @@
     });
   }
 
+  // ============================================================
+  // MODEL PICKER - cac helper can co truoc lan render dau tien (modal UI con lai o script 2)
+  // ============================================================
+  const MODEL_AUTO_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg>';
+
+  let modelModalType = 'video';
+  let modelModalTargetId = 'f_model';
+  let modelModalLabelId = 'modelPickerLabel';
+
+  function getEntriesForModal() {
+    if (modelModalType === 'image') {
+      const entries = [];
+      Object.entries(IMAGE_PROVIDERS).forEach(([providerKey, p]) => {
+        p.models.forEach((m) => {
+          entries.push({ providerKey, providerLabel: p.label, providerIcon: p.icon || IMAGE_PROVIDER_ICONS.gemini, active: p.active, ...m });
+        });
+      });
+      return entries;
+    }
+    const entries = [];
+    Object.entries(PROVIDERS).forEach(([providerKey, p]) => {
+      p.models.forEach((m) => {
+        if (m.val === 'na') return;
+        entries.push({ providerKey, providerLabel: p.label, providerIcon: p.icon || PROVIDER_ICONS.kling, active: p.active, ...m });
+      });
+    });
+    return entries;
+  }
+
+  function getProvidersForModal() {
+    return modelModalType === 'image' ? IMAGE_PROVIDERS : PROVIDERS;
+  }
+
+  function updateModelPickerLabelGeneric(labelId, targetId, type) {
+    const labelEl = document.getElementById(labelId);
+    if (!labelEl) return;
+    const value = document.getElementById(targetId)?.value || (type === 'image' ? 'gemini:nano-banana' : 'kling:v2-master');
+    if (value === 'auto:auto') {
+      labelEl.innerHTML = `<span class="model-picker-icon">${MODEL_AUTO_ICON}</span> ${t('model_auto')}`;
+      return;
+    }
+    const [providerKey, val] = value.split(':');
+    const savedType = modelModalType;
+    modelModalType = type;
+    const entry = getEntriesForModal().find((e) => e.providerKey === providerKey && e.val === val);
+    modelModalType = savedType;
+    labelEl.innerHTML = entry
+      ? `<span class="model-picker-icon">${entry.providerIcon}</span> ${entry.providerLabel} — ${entry.label}`
+      : value;
+  }
+
+  function updateModelPickerLabel() {
+    updateModelPickerLabelGeneric('modelPickerLabel', 'f_model', 'video');
+  }
+  function updateImageModelPickerLabel() {
+    updateModelPickerLabelGeneric('imgModelPickerLabel', 'f_img_model', 'image');
+  }
+
   renderStaticText();
   renderControls();
   initLibrary();
@@ -2403,39 +2484,12 @@
   // ============================================================
   // MODEL PICKER MODAL
   // ============================================================
-  const MODEL_AUTO_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg>';
-
-  function getAllModelEntries() {
-    const entries = [];
-    Object.entries(PROVIDERS).forEach(([providerKey, p]) => {
-      p.models.forEach((m) => {
-        if (m.val === 'na') return; // bo qua placeholder cua nha cung cap chua kich hoat
-        entries.push({ providerKey, providerLabel: p.label, providerIcon: p.icon || PROVIDER_ICONS.kling, active: p.active, ...m });
-      });
-    });
-    return entries;
-  }
-
-  function updateModelPickerLabel() {
-    const labelEl = document.getElementById('modelPickerLabel');
-    if (!labelEl) return;
-    const value = document.getElementById('f_model')?.value || 'kling:v2-master';
-    if (value === 'auto:auto') {
-      labelEl.innerHTML = `<span class="model-picker-icon">${MODEL_AUTO_ICON}</span> ${t('model_auto')}`;
-      return;
-    }
-    const [providerKey, val] = value.split(':');
-    const entry = getAllModelEntries().find((e) => e.providerKey === providerKey && e.val === val);
-    labelEl.innerHTML = entry
-      ? `<span class="model-picker-icon">${entry.providerIcon}</span> ${entry.providerLabel} — ${entry.label}`
-      : value;
-  }
 
   function renderModelRecommended() {
     const row = document.getElementById('modelRecommendedRow');
     if (!row) return;
-    const currentValue = document.getElementById('f_model')?.value;
-    const recommended = getAllModelEntries().filter((e) => e.tag === 'Recommended' || e.tag === 'New').slice(0, 3);
+    const currentValue = document.getElementById(modelModalTargetId)?.value;
+    const recommended = getEntriesForModal().filter((e) => e.tag === 'Recommended' || e.tag === 'New').slice(0, 3);
 
     row.innerHTML = recommended.map((e) => `
       <div class="model-rec-card${currentValue === `${e.providerKey}:${e.val}` ? ' selected' : ''}" data-provider="${e.providerKey}" data-val="${e.val}">
@@ -2456,17 +2510,17 @@
     const sel = document.getElementById('modelFilterProvider');
     if (!sel) return;
     sel.innerHTML = `<option value="__all__">${t('model_allProviders')}</option>` +
-      Object.entries(PROVIDERS).map(([key, p]) => `<option value="${key}">${p.label}${p.active ? '' : ' 🔒'}</option>`).join('');
+      Object.entries(getProvidersForModal()).map(([key, p]) => `<option value="${key}">${p.label}${p.active ? '' : ' 🔒'}</option>`).join('');
   }
 
   function renderModelList() {
     const container = document.getElementById('modelListContainer');
     if (!container) return;
-    const currentValue = document.getElementById('f_model')?.value;
+    const currentValue = document.getElementById(modelModalTargetId)?.value;
     const providerFilter = document.getElementById('modelFilterProvider')?.value || '__all__';
     const search = (document.getElementById('modelSearchInput')?.value || '').toLowerCase().trim();
 
-    let entries = getAllModelEntries();
+    let entries = getEntriesForModal();
     if (providerFilter !== '__all__') entries = entries.filter((e) => e.providerKey === providerFilter);
     if (search) {
       entries = entries.filter((e) =>
@@ -2474,7 +2528,8 @@
       );
     }
 
-    const autoRowHtml = (providerFilter === '__all__' && !search) ? `
+    const showAutoRow = modelModalType === 'video' && providerFilter === '__all__' && !search;
+    const autoRowHtml = showAutoRow ? `
       <div class="model-list-row${currentValue === 'auto:auto' ? ' selected' : ''}" data-provider="auto" data-val="auto">
         <div class="model-icon-box">${MODEL_AUTO_ICON}</div>
         <div class="model-row-main">
@@ -2506,13 +2561,16 @@
   }
 
   function selectModel(providerKey, val) {
-    const input = document.getElementById('f_model');
+    const input = document.getElementById(modelModalTargetId);
     if (input) input.value = `${providerKey}:${val}`;
-    updateModelPickerLabel();
+    updateModelPickerLabelGeneric(modelModalLabelId, modelModalTargetId, modelModalType);
     closeModelModal();
   }
 
-  function openModelModal() {
+  function openModelModal(type = 'video', targetId, labelId) {
+    modelModalType = type;
+    modelModalTargetId = targetId || (type === 'image' ? 'f_img_model' : 'f_model');
+    modelModalLabelId = labelId || (type === 'image' ? 'imgModelPickerLabel' : 'modelPickerLabel');
     renderModelRecommended();
     renderModelFilterProviderOptions();
     renderModelList();
