@@ -1912,6 +1912,7 @@
     const tabs = [
       { id: '__all__', label: t('lib_all') },
       { id: '__unsorted__', label: t('lib_unsorted') },
+      { id: '__character__', label: t('tab_character') },
       ...folders.map((f) => ({ id: f, label: f })),
     ];
 
@@ -1970,6 +1971,7 @@
     let items = await loadLibItems();
 
     if (activeFolder === '__unsorted__') items = items.filter((i) => i.folder === '__unsorted__');
+    else if (activeFolder === '__character__') items = items.filter((i) => i.tool === 'character');
     else if (activeFolder !== '__all__') items = items.filter((i) => i.folder === activeFolder);
 
     if (typeFilterState !== '__all__') items = items.filter((i) => i.type === typeFilterState);
